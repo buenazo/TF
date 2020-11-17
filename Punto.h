@@ -15,14 +15,13 @@ public:
 	Punto(int px, int py);
 	virtual void Dibujar(Graphics^ g);
 	virtual void Dibujar_R(Graphics^ g);
-	virtual void Dibujar_Imagen(Graphics^ g, Bitmap^ bmp, int pf, int pc);
 	virtual void Mover(Graphics^ g);
 	int retornar_X();
 	int retornar_Y();
 	void cambiar_X(int nuevo);
 	void cambiar_Y(int nuevo);
-	virtual int retornar_Ancho();
-	virtual int retornar_Alto();
+	virtual float retornar_Ancho();
+	virtual float retornar_Alto();
 	bool retornar_eliminar();
 	void cambiar_eliminar(bool nuevo);
 	int retornar_DX();
