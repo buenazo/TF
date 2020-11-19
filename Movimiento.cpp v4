@@ -1,0 +1,284 @@
+#include "Movimiento.h"
+Movimiento::Movimiento() {
+	ce = new int;
+	*ce = 0;
+	ce_2 = new int;
+	*ce_2 = 0;
+}
+Movimiento::Movimiento(Bitmap^ bmp) {
+	
+}
+void Movimiento::Insertar_Corrupt(Graphics^ g, Bitmap^ bmp_corrupt, int j) { //Inserta enemigos tipo corrupt
+	Punto** aux = new Punto * [*ce];
+	for (int i; i < *ce; i++)
+		aux[i] = enemigos[i];
+	enemigos = new Punto * [*ce + 1];
+	for (int i; i < *ce; i++)
+		enemigos[i] = aux[i];
+	int x = mapa[j]->retornar_X();
+	int y = mapa[j]->retornar_Y();
+	enemigos[*ce] = new NPC(x, y, bmp_corrupt);
+	int direccion;
+	direccion = rand() % 4 + 1;
+	switch (direccion) {
+	case 1: enemigos[*ce]->cambiar_ult_movimiento(arriba); break;
+	case 2: enemigos[*ce]->cambiar_ult_movimiento(abajo); break;
+	case 3: enemigos[*ce]->cambiar_ult_movimiento(izquierda); break;
+	case 4: enemigos[*ce]->cambiar_ult_movimiento(derecha);
+	}
+	*ce = *ce + 1;
+}
+void Movimiento::Insertar_Aliado(Graphics^ g, Bitmap^ bmp_aliado, int j, int animal) { //Inserta aliados
+	Aliado** aux = new Aliado * [*ce_2];
+	for (int i; i < *ce_2; i++)
+		aux[i] = aliados[i];
+	aliados = new Aliado * [*ce_2 + 1];
+	for (int i; i < *ce_2; i++)
+		aliados[i] = aux[i];
+	int x = mapa[j]->retornar_X();
+	int y = mapa[j]->retornar_Y();
+	aliados[*ce_2] = new Aliado(x, y, animal, bmp_aliado);
+	int direccion;
+	direccion = rand() % 4 + 1;
+	switch (direccion) {
+	case 1: aliados[*ce_2]->cambiar_ult_movimiento(arriba); break;
+	case 2: aliados[*ce_2]->cambiar_ult_movimiento(abajo); break;
+	case 3: aliados[*ce_2]->cambiar_ult_movimiento(izquierda); break;
+	case 4: aliados[*ce_2]->cambiar_ult_movimiento(derecha);
+	}
+	*ce_2 = *ce_2 + 1;
+}
+void Movimiento::Init(Bitmap^ bmp_monigote, Graphics^ g, Bitmap^ bmp_mapa, Bitmap^ bmp_corrupt, Bitmap^ bmp_pajaro, Bitmap^ bmp_conejo)
+{
+	int aux_x = 0;
+	int aux_y = 0;
+	obj_monigote = new Monigote(10, 10, bmp_monigote);
+	obj_monigote->cambiar_ult_movimiento(direccion::abajo);
+	
+	mapa = new Mapa * [50];
+	for (int i = 0; i < 50; i++) {
+		int x = aux_x;
+		int y = aux_y;
+		mapa[i] = new Mapa(x, y, bmp_mapa);
+		if ((i + 1) % 10 == 0) {
+			aux_x = 0;
+			aux_y = aux_y + mapa[i]->retornar_Alto();
+		}
+		else
+			aux_x = aux_x + mapa[i]->retornar_Ancho();
+	}
+	Insertar_Corrupt(g, bmp_corrupt, 15);
+	Insertar_Corrupt(g, bmp_corrupt, 28);
+	Insertar_Aliado(g, bmp_pajaro, 12, 1);
+	Insertar_Aliado(g, bmp_pajaro, 41, 1);
+	Insertar_Aliado(g, bmp_conejo, 42, 2);
+	Insertar_Aliado(g, bmp_conejo, 43, 2);
+	num_vidas = 3;
+	puntaje = 0;
+}
+void Movimiento::Run(Bitmap^ bmp_monigote, Graphics^ g, Bitmap^ bmp_mapa, Bitmap^ bmp_corrupt, Bitmap^ bmp_pajaro, Bitmap^ bmp_conejo)
+{
+	Dibujar_Mapa(g, bmp_mapa);
+	Font^ f = gcnew Font("Arial", 10);
+	SolidBrush^ b = gcnew SolidBrush(Color::Red);
+
+	g->DrawString("Nro Vidas : " + num_vidas.ToString(), f, b, 1, 1);
+	g->DrawString("Puntaje : " + puntaje.ToString(), f, b, 1, 15);
+
+	Mover_Monigote(g);
+	for (int i = 0; i < 50; i++)
+	{
+
+		if (Colision_Mapa(obj_monigote, mapa[i]) && (mapa[i]->retornar_limite()))
+		{
+			obj_monigote->cambiar_X(obj_monigote->retornar_X() - obj_monigote->retornar_DX());
+			obj_monigote->cambiar_Y(obj_monigote->retornar_Y() - obj_monigote->retornar_DY());
+			obj_monigote->cambiar_ult_movimiento(ninguno);
+		}
+		for (int j = 0; j < *ce; j++) {
+			if (Colision_Mapa(enemigos[j], mapa[i]) && (mapa[i]->retornar_limite())) //Colision con bordes para NPCs. Automaticamente cambia a una direccion aleatoria
+			{
+				int direccion;
+				enemigos[j]->cambiar_X(enemigos[j]->retornar_X() - enemigos[j]->retornar_DX());
+				enemigos[j]->cambiar_Y(enemigos[j]->retornar_Y() - enemigos[j]->retornar_DY());
+				direccion = rand() % 4 + 1;
+				switch (direccion) {
+				case 1: enemigos[j]->cambiar_ult_movimiento(arriba); break;
+				case 2: enemigos[j]->cambiar_ult_movimiento(abajo); break;
+				case 3: enemigos[j]->cambiar_ult_movimiento(izquierda); break;
+				case 4: enemigos[j]->cambiar_ult_movimiento(derecha);
+				}
+
+			}
+		}
+		for (int j = 0; j < *ce_2; j++) {
+			if (Colision_Mapa(aliados[j], mapa[i]) && (mapa[i]->retornar_limite())) //Colision con bordes para NPCs. Automaticamente cambia a una direccion aleatoria
+			{
+				int direccion;
+				aliados[j]->cambiar_X(aliados[j]->retornar_X() - aliados[j]->retornar_DX());
+				aliados[j]->cambiar_Y(aliados[j]->retornar_Y() - aliados[j]->retornar_DY());
+				direccion = rand() % 4 + 1;
+				switch (direccion) {
+				case 1: aliados[j]->cambiar_ult_movimiento(arriba); break;
+				case 2: aliados[j]->cambiar_ult_movimiento(abajo); break;
+				case 3: aliados[j]->cambiar_ult_movimiento(izquierda); break;
+				case 4: aliados[j]->cambiar_ult_movimiento(derecha);
+				}
+
+			}
+		}
+	}
+	for (int j = 0; j < *ce; j++) {
+		if (Colision_NPC(obj_monigote, enemigos[j])) //Colision del monigote con un enemigo
+		{
+			num_vidas = num_vidas - 1;
+			Borrar_enemigos(j);
+		}
+		for (int i = 0; i < *ce_2; i++) { //Colision de un aliado con un enemigo
+			if (Colision_NPC(aliados[i], enemigos[j]))
+			{
+				Borrar_aliados(i);
+			}
+		}
+	}
+	Dibujar_Monigote(g, bmp_monigote, bmp_corrupt, bmp_pajaro, bmp_conejo);
+
+	//Si hay colision aqui modificar
+	
+}
+void Movimiento::Mover_Monigote(Graphics^ g)
+{
+	obj_monigote->Movimiento(g);
+	for (int i = 0; i < *ce; i++)
+		enemigos[i]->Movimiento(g);
+	for (int i = 0; i < *ce_2; i++)
+		aliados[i]->Movimiento(g);
+}
+void Movimiento::Cambiar_Direccion_Monigote(direccion dir) {
+	obj_monigote->cambiar_ult_movimiento(dir);
+}
+void Movimiento::Dibujar_Monigote(Graphics^ g, Bitmap^ bmp_monigote, Bitmap^ bmp_corrupt, Bitmap^ bmp_pajaro, Bitmap^ bmp_conejo)
+{
+	obj_monigote->Dibujar(g, bmp_monigote);
+	for (int i = 0; i < *ce; i++)
+		enemigos[i]->Dibujar(g, bmp_corrupt);
+	for (int i = 0; i < *ce_2; i++) {
+		if (aliados[i]->retornar_animal() == 1)
+			aliados[i]->Dibujar(g, bmp_pajaro);
+		else
+			aliados[i]->Dibujar(g, bmp_conejo);
+	}
+	
+}
+Movimiento::~Movimiento() {
+	if (*ce > 0) {
+		for (int i = 0; i < *ce; i++)
+			delete enemigos[i];
+		delete[]enemigos;
+		for (int i = 0; i < *ce_2; i++)
+			delete aliados[i];
+		delete[]aliados;
+		delete ce;
+	}
+}
+void Movimiento::Dibujar_Mapa(Graphics^ g, Bitmap^ bmp_mapa) {
+	mapa[0]->Dibujar_Imagen(g, bmp_mapa, 0, 0, false);
+	mapa[1]->Dibujar_Imagen(g, bmp_mapa, 0, 7, true);
+	mapa[2]->Dibujar_Imagen(g, bmp_mapa, 2, 8, true);
+	mapa[3]->Dibujar_Imagen(g, bmp_mapa, 2, 8, true);
+	mapa[4]->Dibujar_Imagen(g, bmp_mapa, 2, 8, true);
+	mapa[5]->Dibujar_Imagen(g, bmp_mapa, 2, 8, true);
+	mapa[6]->Dibujar_Imagen(g, bmp_mapa, 2, 8, true);
+	mapa[7]->Dibujar_Imagen(g, bmp_mapa, 2, 8, true);
+	mapa[8]->Dibujar_Imagen(g, bmp_mapa, 2, 8, true);
+	mapa[9]->Dibujar_Imagen(g, bmp_mapa, 0, 0, false);
+	mapa[10]->Dibujar_Imagen(g, bmp_mapa, 0, 0, false);
+	mapa[11]->Dibujar_Imagen(g, bmp_mapa, 1, 7, true);
+	mapa[12]->Dibujar_Imagen(g, bmp_mapa, 0, 0, false);
+	mapa[13]->Dibujar_Imagen(g, bmp_mapa, 0, 0, false);
+	mapa[14]->Dibujar_Imagen(g, bmp_mapa, 0, 0, false);
+	mapa[15]->Dibujar_Imagen(g, bmp_mapa, 0, 0, false);
+	mapa[16]->Dibujar_Imagen(g, bmp_mapa, 0, 0, false);
+	mapa[17]->Dibujar_Imagen(g, bmp_mapa, 0, 0, false);
+	mapa[18]->Dibujar_Imagen(g, bmp_mapa, 0, 0, false);
+	mapa[19]->Dibujar_Imagen(g, bmp_mapa, 1, 7, true);
+	mapa[20]->Dibujar_Imagen(g, bmp_mapa, 0, 0, false);
+	mapa[21]->Dibujar_Imagen(g, bmp_mapa, 2, 7, true);
+	mapa[22]->Dibujar_Imagen(g, bmp_mapa, 2, 9, true);
+	mapa[23]->Dibujar_Imagen(g, bmp_mapa, 0, 0, false);
+	mapa[24]->Dibujar_Imagen(g, bmp_mapa, 1, 7, true);
+	mapa[25]->Dibujar_Imagen(g, bmp_mapa, 0, 0, false);
+	mapa[26]->Dibujar_Imagen(g, bmp_mapa, 0, 0, false);
+	mapa[27]->Dibujar_Imagen(g, bmp_mapa, 0, 0, false);
+	mapa[28]->Dibujar_Imagen(g, bmp_mapa, 0, 0, false);
+	mapa[29]->Dibujar_Imagen(g, bmp_mapa, 0, 0, false);
+	mapa[30]->Dibujar_Imagen(g, bmp_mapa, 0, 0, false);
+	mapa[31]->Dibujar_Imagen(g, bmp_mapa, 0, 0, false);
+	mapa[32]->Dibujar_Imagen(g, bmp_mapa, 0, 0, false);
+	mapa[33]->Dibujar_Imagen(g, bmp_mapa, 0, 0, false);
+	mapa[34]->Dibujar_Imagen(g, bmp_mapa, 1, 7, true);
+	mapa[35]->Dibujar_Imagen(g, bmp_mapa, 0, 0, false);
+	mapa[36]->Dibujar_Imagen(g, bmp_mapa, 0, 0, false);
+	mapa[37]->Dibujar_Imagen(g, bmp_mapa, 0, 0, false);
+	mapa[38]->Dibujar_Imagen(g, bmp_mapa, 0, 0, false);
+	mapa[39]->Dibujar_Imagen(g, bmp_mapa, 1, 7, true);
+	mapa[40]->Dibujar_Imagen(g, bmp_mapa, 0, 0, false);
+	mapa[41]->Dibujar_Imagen(g, bmp_mapa, 0, 0, false);
+	mapa[42]->Dibujar_Imagen(g, bmp_mapa, 0, 0, false);
+	mapa[43]->Dibujar_Imagen(g, bmp_mapa, 0, 0, false);
+	mapa[44]->Dibujar_Imagen(g, bmp_mapa, 1, 7, true);
+	mapa[45]->Dibujar_Imagen(g, bmp_mapa, 0, 0, false);
+	mapa[46]->Dibujar_Imagen(g, bmp_mapa, 0, 0, false);
+	mapa[47]->Dibujar_Imagen(g, bmp_mapa, 0, 0, false);
+	mapa[48]->Dibujar_Imagen(g, bmp_mapa, 2, 8, true);
+	mapa[49]->Dibujar_Imagen(g, bmp_mapa, 0, 0, false);
+}
+bool Movimiento::Colision_Mapa(Punto* obj1, Punto* obj2) {
+	Rectangle rect1 = Rectangle(obj1->retornar_X(),
+		obj1->retornar_Y(),
+		obj1->retornar_Ancho(),
+		obj1->retornar_Alto());
+	Rectangle rect2 = Rectangle(obj2->retornar_X(),
+		obj2->retornar_Y(),
+		obj2->retornar_Ancho()/1.5,
+		obj2->retornar_Alto()/2);
+	return rect1.IntersectsWith(rect2);
+}
+bool Movimiento::Colision_NPC(Punto* obj1, Punto* obj2) {
+	Rectangle rect1 = Rectangle(obj1->retornar_X(),
+		obj1->retornar_Y(),
+		obj1->retornar_Ancho(),
+		obj1->retornar_Alto());
+	Rectangle rect2 = Rectangle(obj2->retornar_X(),
+		obj2->retornar_Y(),
+		obj2->retornar_Ancho(),
+		obj2->retornar_Alto());
+	return rect1.IntersectsWith(rect2);
+}
+void Movimiento::Borrar_enemigos(int pos) {
+	Punto** auxiliar = new Punto * [*ce - 1];
+	int j = 0;
+	for (int i = 0; i < *ce; i++)
+	{
+		if (i != pos) {
+			auxiliar[j] = enemigos[i];
+			j++;
+		}
+	}
+	enemigos = auxiliar;
+	*ce = *ce - 1;
+}
+void Movimiento::Borrar_aliados(int pos) {
+	Aliado** auxiliar = new Aliado * [*ce_2 - 1];
+	int j = 0;
+	for (int i = 0; i < *ce_2; i++)
+	{
+		if (i != pos) {
+			auxiliar[j] = aliados[i];
+			j++;
+		}
+	}
+	aliados = auxiliar;
+	*ce_2 = *ce_2 - 1;
+}
+//System::DateTime::Now.Ticks : srand para Random() -> Random(System::DateTime::Now.Ticks)
