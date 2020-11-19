@@ -1,0 +1,32 @@
+#pragma once
+#include <iostream>
+#include "Monigote.h"
+#include "Mapa.h"
+#include "NPC.h"
+using namespace std;
+using namespace System::Drawing;
+class Movimiento
+{
+private:
+	Mapa** mapa;
+	int* ce;
+	Monigote* obj_monigote;
+	Punto** enemigos;
+	int num_vidas;
+	int puntaje;
+public:
+	Movimiento();
+	Movimiento(Bitmap^ bmp);
+	~Movimiento();
+	//NUEVO
+	void Init(Bitmap^ bmp_monigote, Graphics^ g, Bitmap^ bmp_mapa, Bitmap^ bmp_corrupt);
+	void Run(Bitmap^ bmp_monigote, Graphics^ g, Bitmap^ bmp_mapa, Bitmap^ bmp_corrupt);
+	void Mover_Monigote(Graphics^ g);
+	void Cambiar_Direccion_Monigote(direccion dir);
+	void Dibujar_Monigote(Graphics^ g, Bitmap^ bmp_monigote, Bitmap^ bmp_corrupt);
+	void Dibujar_Mapa(Graphics^ g, Bitmap^ bmp_mapa);
+	bool Colision_Mapa(Punto* obj1, Punto* obj2);
+	bool Colision_NPC(Punto* obj1, Punto* obj2);
+	void Insertar_Corrupt(Graphics^ g, Bitmap^ bmp_corrupt, int j);
+	void Borrar_enemigos(int pos);
+};
