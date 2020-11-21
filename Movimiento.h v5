@@ -1,0 +1,39 @@
+#pragma once
+#include <iostream>
+#include "Monigote.h"
+#include "Mapa.h"
+#include "NPC.h"
+#include "Aliado.h"
+using namespace std;
+using namespace System::Drawing;
+class Movimiento
+{
+private:
+	Mapa** mapa;
+	int* ce;
+	int* ce_2;
+	Monigote* obj_monigote;
+	Punto** enemigos;
+	Aliado** aliados;
+	int num_vidas;
+	int num_aliados;
+	int puntaje;
+	int num_salvados;
+public:
+	Movimiento();
+	Movimiento(Bitmap^ bmp);
+	~Movimiento();
+	//NUEVO
+	void Init(Bitmap^ bmp_monigote, Graphics^ g, Bitmap^ bmp_mapa, Bitmap^ bmp_corrupt, Bitmap^ bmp_pajaro, Bitmap^ bmp_conejo);
+	void Run(Bitmap^ bmp_monigote, Graphics^ g, Bitmap^ bmp_mapa, Bitmap^ bmp_corrupt, Bitmap^ bmp_pajaro, Bitmap^ bmp_conejo);
+	void Mover_Monigote(Graphics^ g, int px, int py);
+	void Cambiar_Direccion_Monigote(direccion dir);
+	void Dibujar_Monigote(Graphics^ g, Bitmap^ bmp_monigote, Bitmap^ bmp_corrupt, Bitmap^ bmp_pajaro, Bitmap^ bmp_conejo);
+	void Dibujar_Mapa(Graphics^ g, Bitmap^ bmp_mapa);
+	bool Colision_Mapa(Punto* obj1, Punto* obj2);
+	bool Colision_NPC(Punto* obj1, Punto* obj2);
+	void Insertar_Corrupt(Graphics^ g, Bitmap^ bmp_corrupt, int j);
+	void Borrar_enemigos();
+	void Insertar_Aliado(Graphics^ g, Bitmap^ bmp_aliado, int j, int animal);
+	void Borrar_aliados();
+};
