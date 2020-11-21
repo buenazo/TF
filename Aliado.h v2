@@ -1,0 +1,26 @@
+#pragma once
+#include "Punto.h"
+using namespace System::Drawing;
+class Aliado : public Punto
+{
+private:
+	int w, h, f, c, animal;
+	bool salvado, seguimiento;
+	direccion ult_movimiento;
+public:
+	Aliado();
+	Aliado(int px, int py, int panimal, Bitmap^ bmp);
+	void Movimiento(Graphics^ g);
+	void Movimiento_seguimiento(Graphics^ g, int px, int py);
+	void cambiar_ult_movimiento(direccion dir);
+	void Dibujar(Graphics^ g, Bitmap^ bmp);
+	float retornar_Ancho();
+	float retornar_Alto();
+	int retornar_animal();
+	bool retornar_salvado();
+	void cambiar_salvado(bool nuevo);
+	bool retornar_seguimiento();
+	void cambiar_seguimiento(bool nuevo);
+	~Aliado();
+};
+
